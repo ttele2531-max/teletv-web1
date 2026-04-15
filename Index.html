@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeleTV Web System</title>
+    <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet" />
+    <style>
+        /* Base Styling */
+        body { background: #1a1a1a; color: white; font-family: sans-serif; margin: 0; overflow-x: hidden; }
+        .container { padding: 20px; }
+        .header { color: #0056b3; text-align: center; }
+        
+        /* Grid and Cards */
+        .movie-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; }
+        .movie-card { 
+            background: #2d2d2d; border-radius: 10px; overflow: hidden; 
+            border: 2px solid transparent; transition: 0.3s;
+        }
+        /* D-Pad Focus Style for Samsung/LG */
+        .movie-card.focused { border-color: #0056b3; transform: scale(1.08); box-shadow: 0 0 20px rgba(0,86,179,0.5); }
+        .poster { width: 100%; height: 260px; object-fit: cover; }
+        
+        /* Player Overlay */
+        #player-container { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 9999; }
+        .back-btn { position: absolute; top: 20px; left: 20px; z-index: 10000; padding: 10px 20px; background: #0056b3; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div id="app" class="container">
+    <div class="header"><h1>TeleTV</h1><p>System Online</p></div>
+    <div id="movie-grid" class="movie-grid"></div>
+</div>
+
+<div id="player-container">
+    <button class="back-btn" onclick="closePlayer()">← Back</button>
+    <video id="tv-player" class="video-js vjs-big-play-centered"></video>
+</div>
+
+<script src="https://vjs.zencdn.net/7.20.3/video.min.js"></script>
+<script>
+    // 1. CONFIG FROM YOUR BUNDLE
+    const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w300";
+    const PROXY = "https://cors-anywhere.herokuapp.com/"; // Temporary Bridge
+    let movies = [];
+    let focusedIndex = 0;
+
+    // 2. FETCH DATA (Using TMDB logic from your Android file)
+    async function loadContent() {
+        const res = await fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=YOUR_API_KEY`);
+        const data = await res.json();
+        movies = data.results;
+        renderGrid();
+    }
+
+    function renderGrid() {
+        const grid = document.getElementById('movie-grid');
+        grid.innerHTML = movies.map((m, i) => `
+            <div class="movie-card ${i === focusedIndex ? 'focused' : ''}" id="movie-${i}">
+                <img src="${TMDB_IMAGE_BASE}${m.poster_path}" class="poster">
+                <div style="padding:10px; text-align:center;">${m.title}</div>
+            </div>
+        `).join('');
+        document.getElementById(`movie-${focusedIndex}`).scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    // 3. D-PAD NAVIGATION FOR SAMSUNG/LG
+    window.addEventListener('keydown', (e) => {
+        if (document.getElementById('player-container').style.display === 'block') return;
+
+        if (e.keyCode === 39) focusedIndex = Math.min(focusedIndex + 1, movies.length - 1);
+        if (e.keyCode === 37) focusedIndex = Math.max(focusedIndex - 1, 0);
+        if (e.keyCode === 13) startStreaming(movies[focusedIndex]);
+        renderGrid();
+    });
+
+    // 4. PLAYER LOGIC
+    function startStreaming(movie) {
+        document.getElementById('player-container').style.display = 'block';
+        const player = videojs('tv-player');
+        // This is where you'd plug in your scraper logic to get the real video link
+        player.src({ src: PROXY + "REAL_VIDEO_STREAM_URL", type: 'application/x-mpegURL' });
+        player.play();
+    }
+
+    function closePlayer() {
+        const player = videojs('tv-player');
+        player.pause();
+        document.getElementById('player-container').style.display = 'none';
+    }
+
+    loadContent();
+</script>
+</body>
+</html>
