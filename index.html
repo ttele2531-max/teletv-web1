@@ -16,7 +16,7 @@
             min-height: 100vh; 
             margin: 0; 
             overflow: hidden;
-            cursor: none; /* Cleaner look for Smart TVs */
+            cursor: none; 
         }
         
         .terminal-card { 
@@ -117,54 +117,66 @@
     </div>
 
     <script>
+        const inputField = document.getElementById('passkey');
+
+        // Automatic Formatting & Caps
+        inputField.addEventListener('input', function (e) {
+            let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); 
+            
+            // Bypass formatting for Master Key
+            if (value.startsWith("TTELETV77")) {
+                e.target.value = value;
+                return;
+            }
+
+            // Apply Hyphens: XXXX-000-XX
+            if (value.length > 4 && value.length <= 7) {
+                value = value.slice(0, 4) + '-' + value.slice(4);
+            } else if (value.length > 7) {
+                value = value.slice(0, 4) + '-' + value.slice(4, 7) + '-' + value.slice(7, 9);
+            }
+            
+            e.target.value = value.slice(0, 11); 
+        });
+
         function authorize() {
-            const field = document.getElementById('passkey');
-            const key = field.value.trim();
+            const key = inputField.value.trim().toUpperCase(); 
             const error = document.getElementById('error');
-            const card = document.getElementById('gate');
             
             // --- MASTER BYPASS ---
-            if (key === "TTeletv77") {
+            if (key === "TTELETV77") {
                 sessionStorage.setItem('tele_auth', 'active');
                 window.location.href = "setup.html";
                 return;
             }
 
-            const input = key.toUpperCase();
-            const segments = input.split('-');
-            
-            // Validate basic format (XXXX-000-XX)
-            if (segments.length !== 3) {
-                showError("INVALID KEY FORMAT");
-                return;
-            }
+            // --- 500-USER ROTATION ---
+            const segments = key.split('-');
+            if (segments.length === 3) {
+                const prefix = segments[0];
+                const serial = parseInt(segments[1]);
+                const suffix = segments[2];
 
-            const prefix = segments[0];
-            const serial = parseInt(segments[1]);
-            const suffix = segments[2];
+                const preList = ["SR18", "QG15", "GA16", "RB20", "EJ15", "DB15", "2JZ"];
+                const sufList = ["JF", "KE", "HY", "WQ", "TR"];
 
-            // 500-User Rotation Logic
-            const preList = ["SR18", "QG15", "GA16", "RB20", "EJ15", "DB15", "2JZ"];
-            const sufList = ["JF", "KE", "HY", "WQ", "TR"];
+                const targetPre = preList[(serial - 1) % 7];
+                const targetSuf = sufList[(serial - 1) % 5];
 
-            const targetPre = preList[(serial - 1) % 7];
-            const targetSuf = sufList[(serial - 1) % 5];
-
-            // Validate against rotation lists
-            if (serial >= 1 && serial <= 500 && prefix === targetPre && suffix === targetSuf) {
-                const hardwareBinding = localStorage.getItem('teletv_hw_id');
-
-                // Hardware Lock Logic
-                if (!hardwareBinding || hardwareBinding === input) {
-                    localStorage.setItem('teletv_hw_id', input);
-                    sessionStorage.setItem('tele_auth', 'active');
-                    window.location.href = "setup.html";
-                } else {
-                    showError("KEY BOUND TO OTHER HARDWARE");
+                if (serial >= 1 && serial <= 500 && prefix === targetPre && suffix === targetSuf) {
+                    const hardwareBinding = localStorage.getItem('teletv_hw_id');
+                    if (!hardwareBinding || hardwareBinding === key) {
+                        localStorage.setItem('teletv_hw_id', key);
+                        sessionStorage.setItem('tele_auth', 'active');
+                        window.location.href = "setup.html";
+                        return;
+                    } else {
+                        showError("KEY BOUND TO OTHER HARDWARE");
+                        return;
+                    }
                 }
-            } else {
-                showError("ACCESS DENIED");
             }
+            showError("ACCESS DENIED");
         }
 
         function showError(msg) {
@@ -175,8 +187,7 @@
             setTimeout(() => { document.getElementById('gate').style.borderColor = "#222"; }, 1500);
         }
 
-        // Remote Control 'Enter' Key support
-        document.getElementById('passkey').addEventListener("keypress", function(e) {
+        inputField.addEventListener("keypress", function(e) {
             if (e.key === "Enter") authorize();
         });
     </script>
