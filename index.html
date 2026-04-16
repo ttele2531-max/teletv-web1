@@ -5,175 +5,70 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TeleTV | System Authorization</title>
     <style>
-        :root { --gold: #D4AF37; --bg: #000000; --panel: #0a0a0a; }
-        body { 
-            background: var(--bg); 
-            color: white; 
-            font-family: 'Segoe UI', Roboto, Arial, sans-serif; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            min-height: 100vh; 
-            margin: 0; 
-            overflow: hidden;
-            cursor: none; 
-        }
-        
-        .terminal-card { 
-            background: var(--panel); 
-            border: 1px solid #222; 
-            border-radius: 20px; 
-            padding: 60px 40px; 
-            text-align: center; 
-            width: 420px; 
-            box-shadow: 0 40px 100px rgba(0,0,0,0.9);
-            transition: border 0.3s ease;
-        }
-
-        .logo-area img { 
-            width: 220px; 
-            margin-bottom: 40px; 
-            filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.2));
-        }
-
-        h1 { 
-            font-size: 0.9rem; 
-            letter-spacing: 5px; 
-            color: var(--gold); 
-            text-transform: uppercase; 
-            margin-bottom: 40px;
-            font-weight: 300;
-        }
-        
-        .input-container { margin-bottom: 30px; }
-        
-        input { 
-            width: 100%; 
-            padding: 22px; 
-            border-radius: 12px; 
-            border: 2px solid #333; 
-            background: #000; 
-            color: white; 
-            text-align: center; 
-            font-size: 1.4rem;
-            letter-spacing: 4px;
-            box-sizing: border-box;
-            outline: none;
-            text-transform: uppercase;
-        }
+        :root { --gold: #D4AF37; --bg: #000; --panel: #0a0a0a; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; overflow: hidden; cursor: none; }
+        .terminal-card { background: var(--panel); border: 1px solid #222; border-radius: 20px; padding: 60px 40px; text-align: center; width: 420px; box-shadow: 0 40px 100px rgba(0,0,0,0.9); }
+        .logo-area img { width: 220px; margin-bottom: 40px; filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.2)); }
+        h1 { font-size: 0.9rem; letter-spacing: 5px; color: var(--gold); text-transform: uppercase; margin-bottom: 40px; font-weight: 300; }
+        input { width: 100%; padding: 22px; border-radius: 12px; border: 2px solid #333; background: #000; color: white; text-align: center; font-size: 1.4rem; letter-spacing: 4px; outline: none; text-transform: uppercase; }
         input:focus { border-color: var(--gold); box-shadow: 0 0 20px rgba(212, 175, 55, 0.3); }
-
-        .auth-btn { 
-            width: 100%; 
-            padding: 20px; 
-            border-radius: 12px; 
-            border: none; 
-            background: var(--gold); 
-            color: black;
-            font-weight: 900; 
-            text-transform: uppercase; 
-            letter-spacing: 3px;
-            cursor: pointer; 
-            transition: background 0.2s, transform 0.1s;
-        }
-        .auth-btn:active { transform: scale(0.98); }
-        .auth-btn:hover { background: #fff; }
-
-        .error-msg { 
-            color: #ff4444; 
-            font-size: 0.8rem; 
-            margin-top: 25px; 
-            display: none; 
-            letter-spacing: 1px;
-            font-weight: bold;
-        }
-        
-        .version { 
-            margin-top: 50px; 
-            font-size: 0.6rem; 
-            color: #333; 
-            letter-spacing: 3px; 
-        }
+        .auth-btn { width: 100%; padding: 20px; border-radius: 12px; border: none; background: var(--gold); color: black; font-weight: 900; text-transform: uppercase; letter-spacing: 3px; cursor: pointer; margin-top: 30px; }
+        .error-msg { color: #ff4444; font-size: 0.8rem; margin-top: 25px; display: none; font-weight: bold; }
+        .version { margin-top: 50px; font-size: 0.6rem; color: #333; letter-spacing: 3px; }
     </style>
 </head>
 <body>
-
     <div class="terminal-card" id="gate">
         <div class="logo-area">
             <img src="TeleTV_Logo.png" onerror="this.src='res/TeleTV_Logo.png'" alt="TeleTV">
         </div>
-        
         <h1>System Authorization</h1>
-        
-        <div class="input-container">
-            <input type="text" id="passkey" placeholder="XXXX-000-XX" spellcheck="false" autocomplete="off" autofocus>
-        </div>
-
+        <input type="text" id="passkey" placeholder="XXXX-000-XX" spellcheck="false" autocomplete="off" autofocus>
         <button class="auth-btn" onclick="authorize()">Initiate Handshake</button>
-        
         <div id="error" class="error-msg"></div>
-
         <div class="version">TELETV_WEB_CORE_V2.6_STABLE</div>
     </div>
 
     <script>
         const inputField = document.getElementById('passkey');
 
-        // Automatic Formatting & Caps
         inputField.addEventListener('input', function (e) {
-            let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); 
-            
-            // Bypass formatting for Master Key
-            if (value.startsWith("TTELETV77")) {
-                e.target.value = value;
+            let rawValue = e.target.value.toUpperCase();
+            // MASTER KEY BYPASS: No hyphens if it starts with TT
+            if (rawValue.startsWith("TT")) {
+                e.target.value = rawValue.replace(/[^A-Z0-9]/g, '').slice(0, 9);
                 return;
             }
-
-            // Apply Hyphens: XXXX-000-XX
+            // USER HYPHENATION
+            let value = rawValue.replace(/[^A-Z0-9]/g, ''); 
             if (value.length > 4 && value.length <= 7) {
                 value = value.slice(0, 4) + '-' + value.slice(4);
             } else if (value.length > 7) {
                 value = value.slice(0, 4) + '-' + value.slice(4, 7) + '-' + value.slice(7, 9);
             }
-            
             e.target.value = value.slice(0, 11); 
         });
 
         function authorize() {
             const key = inputField.value.trim().toUpperCase(); 
-            const error = document.getElementById('error');
-            
-            // --- MASTER BYPASS ---
             if (key === "TTELETV77") {
                 sessionStorage.setItem('tele_auth', 'active');
                 window.location.href = "setup.html";
                 return;
             }
-
-            // --- 500-USER ROTATION ---
+            // Standard 500-user logic
             const segments = key.split('-');
             if (segments.length === 3) {
-                const prefix = segments[0];
-                const serial = parseInt(segments[1]);
-                const suffix = segments[2];
-
+                const prefix = segments[0], serial = parseInt(segments[1]), suffix = segments[2];
                 const preList = ["SR18", "QG15", "GA16", "RB20", "EJ15", "DB15", "2JZ"];
                 const sufList = ["JF", "KE", "HY", "WQ", "TR"];
-
-                const targetPre = preList[(serial - 1) % 7];
-                const targetSuf = sufList[(serial - 1) % 5];
-
-                if (serial >= 1 && serial <= 500 && prefix === targetPre && suffix === targetSuf) {
-                    const hardwareBinding = localStorage.getItem('teletv_hw_id');
-                    if (!hardwareBinding || hardwareBinding === key) {
+                if (serial >= 1 && serial <= 500 && prefix === preList[(serial-1)%7] && suffix === sufList[(serial-1)%5]) {
+                    if (!localStorage.getItem('teletv_hw_id') || localStorage.getItem('teletv_hw_id') === key) {
                         localStorage.setItem('teletv_hw_id', key);
                         sessionStorage.setItem('tele_auth', 'active');
                         window.location.href = "setup.html";
                         return;
-                    } else {
-                        showError("KEY BOUND TO OTHER HARDWARE");
-                        return;
-                    }
+                    } else { showError("KEY BOUND TO OTHER HARDWARE"); return; }
                 }
             }
             showError("ACCESS DENIED");
@@ -181,15 +76,10 @@
 
         function showError(msg) {
             const error = document.getElementById('error');
-            error.innerText = msg;
-            error.style.display = "block";
-            document.getElementById('gate').style.borderColor = "#ff4444";
-            setTimeout(() => { document.getElementById('gate').style.borderColor = "#222"; }, 1500);
+            error.innerText = msg; error.style.display = "block";
+            setTimeout(() => { error.style.display = "none"; }, 3000);
         }
-
-        inputField.addEventListener("keypress", function(e) {
-            if (e.key === "Enter") authorize();
-        });
+        inputField.addEventListener("keypress", (e) => { if (e.key === "Enter") authorize(); });
     </script>
 </body>
 </html>
