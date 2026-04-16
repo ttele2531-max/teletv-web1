@@ -3,94 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TeleTV Web System</title>
+    <title>TeleTV Web System | Samsung 2025 Sim</title>
     <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet" />
     <style>
-        /* Base Styling */
-        body { background: #1a1a1a; color: white; font-family: sans-serif; margin: 0; overflow-x: hidden; }
-        .container { padding: 20px; }
-        .header { color: #0056b3; text-align: center; }
-        
-        /* Grid and Cards */
-        .movie-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; }
-        .movie-card { 
-            background: #2d2d2d; border-radius: 10px; overflow: hidden; 
-            border: 2px solid transparent; transition: 0.3s;
+        :root {
+            --samsung-blue: #0081f1;
+            --bg-dark: #030a1a;
         }
-        /* D-Pad Focus Style for Samsung/LG */
-        .movie-card.focused { border-color: #0056b3; transform: scale(1.08); box-shadow: 0 0 20px rgba(0,86,179,0.5); }
-        .poster { width: 100%; height: 260px; object-fit: cover; }
+
+        body { 
+            background: var(--bg-dark); 
+            color: white; 
+            font-family: 'Segoe UI', Roboto, sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            overflow: hidden; /* Recommended for TV apps */
+        }
+
+        .header { 
+            text-align: center; 
+            margin-bottom: 40px; 
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* LOGO STYLING */
+        .main-logo {
+            height: 120px; /* High visibility for 1080p/4K TVs */
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 10px rgba(0, 129, 241, 0.3));
+        }
+
+        .header h1 { 
+            font-size: 1.2rem;
+            text-transform: uppercase; 
+            letter-spacing: 4px; 
+            color: var(--samsung-blue);
+            margin: 0;
+        }
         
-        /* Player Overlay */
-        #player-container { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 9999; }
-        .back-btn { position: absolute; top: 20px; left: 20px; z-index: 10000; padding: 10px 20px; background: #0056b3; color: white; border: none; cursor: pointer; }
+        .movie-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); 
+            gap: 30px; 
+            padding: 20px;
+        }
+
+        .movie-card { 
+            background: #1c1c1c; 
+            border-radius: 15px; 
+            overflow: hidden; 
+            border: 4px solid transparent; 
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* SAMSUNG FOCUSED STYLE */
+        .movie-card.focused { 
+            border-color: var(--samsung-blue); 
+            transform: scale(1.1); 
+            box-shadow: 0 0 40px rgba(0, 129, 241, 0.6); 
+            z-index: 100;
+        }
+
+        .poster { width: 100%; height: 320px; object-fit: cover; }
+        .title { padding: 15px; text-align: center; font-weight: 500; font-size: 1.1rem; }
+
+        #player-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 9999; }
+        .back-btn { position: absolute; top: 30px; left: 30px; z-index: 10000; padding: 15px 30px; background: var(--samsung-blue); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div id="app" class="container">
-    <div class="header"><h1>TeleTV</h1><p>System Online</p></div>
+<div id="main-ui">
+    <div class="header">
+        <img src="TeleTV_Logo.jpg" alt="TeleTV Logo" class="main-logo">
+        <h1>Premium Secure Broadcast</h1>
+    </div>
     <div id="movie-grid" class="movie-grid"></div>
 </div>
 
-<div id="player-container">
-    <button class="back-btn" onclick="closePlayer()">← Back</button>
-    <video id="tv-player" class="video-js vjs-big-play-centered"></video>
+<div id="player-overlay">
+    <button class="back-btn" id="back-button" onclick="closePlayer()">← RETURN TO GALLERY</button>
+    <video id="tv-player" class="video-js vjs-big-play-centered vjs-fluid"></video>
 </div>
 
 <script src="https://vjs.zencdn.net/7.20.3/video.min.js"></script>
 <script>
-    // 1. CONFIG FROM YOUR BUNDLE
-    const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w300";
-    const PROXY = "https://cors-anywhere.herokuapp.com/"; // Temporary Bridge
     let movies = [];
-    let focusedIndex = 0;
+    let currentIndex = 0;
 
-    // 2. FETCH DATA (Using TMDB logic from your Android file)
-    async function loadContent() {
-        const res = await fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=YOUR_API_KEY`);
-        const data = await res.json();
-        movies = data.results;
-        renderGrid();
+    async function init() {
+        try {
+            const res = await fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=3fd2be37160add51d300247a4f5339c0`);
+            const data = await res.json();
+            movies = data.results;
+            render();
+        } catch (e) { console.error("Failed to load movies", e); }
     }
 
-    function renderGrid() {
+    function render() {
         const grid = document.getElementById('movie-grid');
         grid.innerHTML = movies.map((m, i) => `
-            <div class="movie-card ${i === focusedIndex ? 'focused' : ''}" id="movie-${i}">
-                <img src="${TMDB_IMAGE_BASE}${m.poster_path}" class="poster">
-                <div style="padding:10px; text-align:center;">${m.title}</div>
+            <div class="movie-card ${i === currentIndex ? 'focused' : ''}" id="item-${i}">
+                <img src="https://image.tmdb.org/t/p/w500${m.poster_path}" class="poster">
+                <div class="title">${m.title || m.name}</div>
             </div>
         `).join('');
-        document.getElementById(`movie-${focusedIndex}`).scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        const activeItem = document.getElementById(`item-${currentIndex}`);
+        if(activeItem) activeItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
-    // 3. D-PAD NAVIGATION FOR SAMSUNG/LG
+    // SAMSUNG 2025 REMOTE NAVIGATOR
     window.addEventListener('keydown', (e) => {
-        if (document.getElementById('player-container').style.display === 'block') return;
+        const overlay = document.getElementById('player-overlay');
+        if (overlay.style.display === 'block') {
+            if(e.keyCode === 10009 || e.keyCode === 27) closePlayer(); // Samsung Back or Esc
+            return;
+        }
 
-        if (e.keyCode === 39) focusedIndex = Math.min(focusedIndex + 1, movies.length - 1);
-        if (e.keyCode === 37) focusedIndex = Math.max(focusedIndex - 1, 0);
-        if (e.keyCode === 13) startStreaming(movies[focusedIndex]);
-        renderGrid();
+        const cols = Math.floor(window.innerWidth / 250); 
+        switch(e.keyCode) {
+            case 39: if(currentIndex < movies.length - 1) currentIndex++; break; // Right
+            case 37: if(currentIndex > 0) currentIndex--; break; // Left
+            case 38: if(currentIndex >= cols) currentIndex -= cols; break; // Up
+            case 40: if(currentIndex < movies.length - cols) currentIndex += cols; break; // Down
+            case 13: startStream(movies[currentIndex]); break; // Enter/OK
+        }
+        render();
     });
 
-    // 4. PLAYER LOGIC
-    function startStreaming(movie) {
-        document.getElementById('player-container').style.display = 'block';
+    function startStream(movie) {
+        document.getElementById('player-overlay').style.display = 'block';
         const player = videojs('tv-player');
-        // This is where you'd plug in your scraper logic to get the real video link
-        player.src({ src: PROXY + "REAL_VIDEO_STREAM_URL", type: 'application/x-mpegURL' });
+        // Example stream - logic for your specific source can be added here
+        player.src({ src: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", type: 'video/mp4' });
         player.play();
     }
 
     function closePlayer() {
         const player = videojs('tv-player');
         player.pause();
-        document.getElementById('player-container').style.display = 'none';
+        document.getElementById('player-overlay').style.display = 'none';
     }
 
-    loadContent();
+    init();
 </script>
 </body>
 </html>
