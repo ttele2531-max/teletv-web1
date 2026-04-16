@@ -3,151 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TeleTV Web System | Samsung 2025 Sim</title>
-    <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet" />
+    <title>TeleTV | System Authorization</title>
     <style>
-        :root {
-            --samsung-blue: #0081f1;
-            --bg-dark: #030a1a;
-        }
-
+        :root { --gold: #D4AF37; --bg: #000000; --panel: #0a0a0a; }
         body { 
-            background: var(--bg-dark); 
+            background: var(--bg); 
             color: white; 
-            font-family: 'Segoe UI', Roboto, sans-serif; 
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
             margin: 0; 
-            padding: 20px; 
-            overflow: hidden; /* Recommended for TV apps */
-        }
-
-        .header { 
-            text-align: center; 
-            margin-bottom: 40px; 
-            padding-bottom: 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        /* LOGO STYLING */
-        .main-logo {
-            height: 120px; /* High visibility for 1080p/4K TVs */
-            margin-bottom: 15px;
-            filter: drop-shadow(0 0 10px rgba(0, 129, 241, 0.3));
-        }
-
-        .header h1 { 
-            font-size: 1.2rem;
-            text-transform: uppercase; 
-            letter-spacing: 4px; 
-            color: var(--samsung-blue);
-            margin: 0;
+            overflow: hidden;
+            cursor: none; /* Cleaner look for Smart TVs */
         }
         
-        .movie-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); 
-            gap: 30px; 
-            padding: 20px;
+        .terminal-card { 
+            background: var(--panel); 
+            border: 1px solid #222; 
+            border-radius: 20px; 
+            padding: 60px 40px; 
+            text-align: center; 
+            width: 420px; 
+            box-shadow: 0 40px 100px rgba(0,0,0,0.9);
+            transition: border 0.3s ease;
         }
 
-        .movie-card { 
-            background: #1c1c1c; 
-            border-radius: 15px; 
-            overflow: hidden; 
-            border: 4px solid transparent; 
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        .logo-area img { 
+            width: 220px; 
+            margin-bottom: 40px; 
+            filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.2));
         }
 
-        /* SAMSUNG FOCUSED STYLE */
-        .movie-card.focused { 
-            border-color: var(--samsung-blue); 
-            transform: scale(1.1); 
-            box-shadow: 0 0 40px rgba(0, 129, 241, 0.6); 
-            z-index: 100;
+        h1 { 
+            font-size: 0.9rem; 
+            letter-spacing: 5px; 
+            color: var(--gold); 
+            text-transform: uppercase; 
+            margin-bottom: 40px;
+            font-weight: 300;
         }
+        
+        .input-container { margin-bottom: 30px; }
+        
+        input { 
+            width: 100%; 
+            padding: 22px; 
+            border-radius: 12px; 
+            border: 2px solid #333; 
+            background: #000; 
+            color: white; 
+            text-align: center; 
+            font-size: 1.4rem;
+            letter-spacing: 4px;
+            box-sizing: border-box;
+            outline: none;
+            text-transform: uppercase;
+        }
+        input:focus { border-color: var(--gold); box-shadow: 0 0 20px rgba(212, 175, 55, 0.3); }
 
-        .poster { width: 100%; height: 320px; object-fit: cover; }
-        .title { padding: 15px; text-align: center; font-weight: 500; font-size: 1.1rem; }
+        .auth-btn { 
+            width: 100%; 
+            padding: 20px; 
+            border-radius: 12px; 
+            border: none; 
+            background: var(--gold); 
+            color: black;
+            font-weight: 900; 
+            text-transform: uppercase; 
+            letter-spacing: 3px;
+            cursor: pointer; 
+            transition: background 0.2s, transform 0.1s;
+        }
+        .auth-btn:active { transform: scale(0.98); }
+        .auth-btn:hover { background: #fff; }
 
-        #player-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 9999; }
-        .back-btn { position: absolute; top: 30px; left: 30px; z-index: 10000; padding: 15px 30px; background: var(--samsung-blue); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .error-msg { 
+            color: #ff4444; 
+            font-size: 0.8rem; 
+            margin-top: 25px; 
+            display: none; 
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+        
+        .version { 
+            margin-top: 50px; 
+            font-size: 0.6rem; 
+            color: #333; 
+            letter-spacing: 3px; 
+        }
     </style>
 </head>
 <body>
 
-<div id="main-ui">
-    <div class="header">
-        <img src="TeleTV_Logo.jpg" alt="TeleTV Logo" class="main-logo">
-        <h1>Premium Secure Broadcast</h1>
-    </div>
-    <div id="movie-grid" class="movie-grid"></div>
-</div>
-
-<div id="player-overlay">
-    <button class="back-btn" id="back-button" onclick="closePlayer()">← RETURN TO GALLERY</button>
-    <video id="tv-player" class="video-js vjs-big-play-centered vjs-fluid"></video>
-</div>
-
-<script src="https://vjs.zencdn.net/7.20.3/video.min.js"></script>
-<script>
-    let movies = [];
-    let currentIndex = 0;
-
-    async function init() {
-        try {
-            const res = await fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=3fd2be37160add51d300247a4f5339c0`);
-            const data = await res.json();
-            movies = data.results;
-            render();
-        } catch (e) { console.error("Failed to load movies", e); }
-    }
-
-    function render() {
-        const grid = document.getElementById('movie-grid');
-        grid.innerHTML = movies.map((m, i) => `
-            <div class="movie-card ${i === currentIndex ? 'focused' : ''}" id="item-${i}">
-                <img src="https://image.tmdb.org/t/p/w500${m.poster_path}" class="poster">
-                <div class="title">${m.title || m.name}</div>
-            </div>
-        `).join('');
+    <div class="terminal-card" id="gate">
+        <div class="logo-area">
+            <img src="TeleTV_Logo.png" onerror="this.src='res/TeleTV_Logo.png'" alt="TeleTV">
+        </div>
         
-        const activeItem = document.getElementById(`item-${currentIndex}`);
-        if(activeItem) activeItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
+        <h1>System Authorization</h1>
+        
+        <div class="input-container">
+            <input type="text" id="passkey" placeholder="XXXX-000-XX" spellcheck="false" autocomplete="off" autofocus>
+        </div>
 
-    // SAMSUNG 2025 REMOTE NAVIGATOR
-    window.addEventListener('keydown', (e) => {
-        const overlay = document.getElementById('player-overlay');
-        if (overlay.style.display === 'block') {
-            if(e.keyCode === 10009 || e.keyCode === 27) closePlayer(); // Samsung Back or Esc
-            return;
+        <button class="auth-btn" onclick="authorize()">Initiate Handshake</button>
+        
+        <div id="error" class="error-msg"></div>
+
+        <div class="version">TELETV_WEB_CORE_V2.6_STABLE</div>
+    </div>
+
+    <script>
+        function authorize() {
+            const field = document.getElementById('passkey');
+            const key = field.value.trim();
+            const error = document.getElementById('error');
+            const card = document.getElementById('gate');
+            
+            // --- MASTER BYPASS ---
+            if (key === "TTeletv77") {
+                sessionStorage.setItem('tele_auth', 'active');
+                window.location.href = "setup.html";
+                return;
+            }
+
+            const input = key.toUpperCase();
+            const segments = input.split('-');
+            
+            // Validate basic format (XXXX-000-XX)
+            if (segments.length !== 3) {
+                showError("INVALID KEY FORMAT");
+                return;
+            }
+
+            const prefix = segments[0];
+            const serial = parseInt(segments[1]);
+            const suffix = segments[2];
+
+            // 500-User Rotation Logic
+            const preList = ["SR18", "QG15", "GA16", "RB20", "EJ15", "DB15", "2JZ"];
+            const sufList = ["JF", "KE", "HY", "WQ", "TR"];
+
+            const targetPre = preList[(serial - 1) % 7];
+            const targetSuf = sufList[(serial - 1) % 5];
+
+            // Validate against rotation lists
+            if (serial >= 1 && serial <= 500 && prefix === targetPre && suffix === targetSuf) {
+                const hardwareBinding = localStorage.getItem('teletv_hw_id');
+
+                // Hardware Lock Logic
+                if (!hardwareBinding || hardwareBinding === input) {
+                    localStorage.setItem('teletv_hw_id', input);
+                    sessionStorage.setItem('tele_auth', 'active');
+                    window.location.href = "setup.html";
+                } else {
+                    showError("KEY BOUND TO OTHER HARDWARE");
+                }
+            } else {
+                showError("ACCESS DENIED");
+            }
         }
 
-        const cols = Math.floor(window.innerWidth / 250); 
-        switch(e.keyCode) {
-            case 39: if(currentIndex < movies.length - 1) currentIndex++; break; // Right
-            case 37: if(currentIndex > 0) currentIndex--; break; // Left
-            case 38: if(currentIndex >= cols) currentIndex -= cols; break; // Up
-            case 40: if(currentIndex < movies.length - cols) currentIndex += cols; break; // Down
-            case 13: startStream(movies[currentIndex]); break; // Enter/OK
+        function showError(msg) {
+            const error = document.getElementById('error');
+            error.innerText = msg;
+            error.style.display = "block";
+            document.getElementById('gate').style.borderColor = "#ff4444";
+            setTimeout(() => { document.getElementById('gate').style.borderColor = "#222"; }, 1500);
         }
-        render();
-    });
 
-    function startStream(movie) {
-        document.getElementById('player-overlay').style.display = 'block';
-        const player = videojs('tv-player');
-        // Example stream - logic for your specific source can be added here
-        player.src({ src: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", type: 'video/mp4' });
-        player.play();
-    }
-
-    function closePlayer() {
-        const player = videojs('tv-player');
-        player.pause();
-        document.getElementById('player-overlay').style.display = 'none';
-    }
-
-    init();
-</script>
+        // Remote Control 'Enter' Key support
+        document.getElementById('passkey').addEventListener("keypress", function(e) {
+            if (e.key === "Enter") authorize();
+        });
+    </script>
 </body>
 </html>
