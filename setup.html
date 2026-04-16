@@ -2,92 +2,44 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TeleTV Core | System Setup</title>
+    <title>TeleTV | HDO Box Core</title>
     <style>
-        :root { --accent: #D4AF37; --bg: #000; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; color: white; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
-        
-        /* 360px Loading Bar - Matched to your UI logic */
-        #loader {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; z-index: 1000;
-        }
-        .progress-container { width: 360px; height: 6px; background: #222; border-radius: 10px; overflow: hidden; margin-top: 30px; border: 1px solid #333; }
-        .progress-bar { width: 0%; height: 100%; background: var(--accent); box-shadow: 0 0 15px var(--accent); transition: width 0.4s ease; }
-
-        /* Video Viewport */
-        #video-viewport { width: 100%; height: 100vh; display: none; background: #000; }
-        video { width: 100%; height: 100%; background: #000; }
-
-        .status-header {
-            position: absolute; top: 40px; left: 40px;
-            padding: 10px 20px; border-left: 3px solid var(--accent);
-            background: rgba(0,0,0,0.7); font-size: 0.8rem; letter-spacing: 3px;
-            z-index: 10; text-transform: uppercase; font-weight: bold;
-        }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
+        #loader { position: fixed; width: 100%; height: 100%; background: #000; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 99; }
+        .progress-container { width: 360px; height: 6px; background: #222; border-radius: 10px; margin-top: 30px; }
+        .progress-bar { width: 0%; height: 100%; background: #D4AF37; box-shadow: 0 0 15px #D4AF37; transition: width 0.2s; }
+        #hdo-portal { width: 100%; height: 100%; display: none; }
+        iframe { width: 100%; height: 100%; border: none; }
     </style>
 </head>
 <body>
-
     <div id="loader">
         <img src="TeleTV_Logo.png" onerror="this.src='res/TeleTV_Logo.png'" style="width: 220px;">
-        
-        <div class="progress-container">
-            <div id="fill" class="progress-bar"></div>
-        </div>
-        <p id="load-text" style="font-size: 0.65rem; color: #D4AF37; margin-top: 15px; letter-spacing: 2px; text-transform: uppercase;">INITIALIZING SYSTEM_CORE...</p>
+        <div class="progress-container"><div id="fill" class="progress-bar"></div></div>
+        <p id="load-text" style="color:#D4AF37; font-size:10px; margin-top:15px; letter-spacing:2px; text-transform: uppercase;">Mounting HDO_WEB_INTERFACE...</p>
     </div>
 
-    <div id="video-viewport">
-        <div class="status-header">SYSTEM ONLINE // LIVE_FEED</div>
-        <video id="tv-player" controls autoplay poster="TeleTV_Logo.png">
-            <source src="INSERT_YOUR_STREAM_URL_HERE" type="application/x-mpegURL">
-            Your browser does not support HLS playback.
-        </video>
+    <div id="hdo-portal">
+        <iframe src="YOUR_HDO_WEB_SOURCE_HERE" allowfullscreen allow="autoplay"></iframe>
     </div>
 
     <script>
-        // --- SECURITY CHECK ---
-        // Kicks out anyone who tries to bypass the login screen
-        if (sessionStorage.getItem('tele_auth') !== 'active') { 
-            window.location.href = "index.html"; 
-        }
+        if (sessionStorage.getItem('tele_auth') !== 'active') { window.location.href = "index.html"; }
 
-        // --- BOOT SEQUENCE ---
-        window.onload = function() {
-            const fill = document.getElementById('fill');
-            const text = document.getElementById('load-text');
-            let p = 0;
-
-            const boot = setInterval(() => {
-                p += Math.floor(Math.random() * 10) + 2; 
-                if (p > 100) p = 100;
-                fill.style.width = p + "%";
-
-                if (p > 90) text.innerText = "ESTABLISHING SECURE TUNNEL...";
-                else if (p > 70) text.innerText = "HANDSHAKING BROADCAST API...";
-                else if (p > 40) text.innerText = "DECODING SYSTEM MANIFEST...";
-                else if (p > 20) text.innerText = "VERIFYING AUTHORIZATION...";
-
-                if (p === 100) {
-                    clearInterval(boot);
-                    setTimeout(() => {
-                        document.getElementById('loader').style.display = 'none';
-                        document.getElementById('video-viewport').style.display = 'block';
-                    }, 1000);
-                }
-            }, 200);
-        };
-
-        // --- TV REMOTE NAVIGATION ---
-        document.addEventListener('keydown', (e) => {
-            const v = document.getElementById('tv-player');
-            // Support for Enter, Play, Pause on Samsung/LG Remotes
-            if (e.keyCode === 13 || e.keyCode === 415) v.play();
-            if (e.keyCode === 19 || e.keyCode === 413) v.pause();
-        });
+        let p = 0;
+        const fill = document.getElementById('fill');
+        const boot = setInterval(() => {
+            p += Math.floor(Math.random() * 5) + 1;
+            if (p > 100) p = 100;
+            fill.style.width = p + "%";
+            if (p === 100) {
+                clearInterval(boot);
+                setTimeout(() => {
+                    document.getElementById('loader').style.display = 'none';
+                    document.getElementById('hdo-portal').style.display = 'block';
+                }, 1000);
+            }
+        }, 150);
     </script>
 </body>
 </html>
